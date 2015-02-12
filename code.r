@@ -41,3 +41,5 @@ levels(fac2)
 
 table(tab$order)
 
+sleep <- split(tab$sleep_total,tab$order)
+mean(sleep$Rodentia)
