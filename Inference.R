@@ -81,3 +81,44 @@ bwt.smoke = babies$bwt[babies$smoke==1]
 mean(bwt.nonsmoke)-mean(bwt.smoke)
 sd(bwt.nonsmoke)
 sd(bwt.smoke)
+
+## sampling
+# the first 30 samples
+dat.ns <- bwt.nonsmoke[1:30]
+dat.s <- bwt.smoke[1:30]
+
+N=30
+X.ns = mean(dat.ns)
+sd.ns = sd(dat.ns)
+X.s = mean(dat.s)
+sd.s = sd(dat.s)
+sd.diff = sqrt(sd.ns^2/N+sd.s^2/N)
+tval = (X.ns - X.s)/sd.diff
+t.test(dat.ns, dat.s)$statistic
+
+pval <- 1-pnorm(tval)+pnorm(-tval)
+
+
+## Inference II questions
+babies = read.table("babies.txt", header=TRUE)
+# extract data
+bwt.nonsmoke = babies$bwt[babies$smoke==0]
+bwt.smoke = babies$bwt[babies$smoke==1]
+
+# sample size
+N=30
+# sampling
+bf <- function(){
+s.ns <- sample(bwt.nonsmoke,N)
+s.s <- sample(bwt.smoke,N)
+
+mytest <- t.test(s.ns, s.s)
+#mytest$p.value
+mytest$conf.int
+}
+bound <- replicate(1000,bf())
+dim(bound)
+range.bound <- diff(bound)
+mean(range.bound)
+
+popdiff = mean(bwt.nonsmoke) - mean(bwt.smoke)
