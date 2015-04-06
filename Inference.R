@@ -122,3 +122,95 @@ range.bound <- diff(bound)
 mean(range.bound)
 
 popdiff = mean(bwt.nonsmoke) - mean(bwt.smoke)
+
+dat.ns = sample(bwt.nonsmoke, 30)
+dat.s = sample(bwt.smoke, 30)
+X.ns = mean(dat.ns)
+sd.ns = sd(dat.ns)
+X.s = mean(dat.s)
+sd.s = sd(dat.s)
+sd.diff = sqrt(sd.ns^2/30 + sd.s^2/30)
+tval = (X.ns - X.s)/sd.diff
+qnorm(1-0.05/2)
+ci.upper = (X.ns-X.s) + sd.diff*1.96
+ci.lower = (X.ns-X.s) - sd.diff*1.96
+
+
+# Type I error vs. Power
+
+babies = read.table("babies.txt", header=TRUE)
+bwt.nonsmoke = babies$bwt[babies$smoke==0]
+bwt.smoke = babies$bwt[babies$smoke==1]
+
+## Test the power of given N
+N <- 15
+
+## calculate the power with given alpha
+alpha <- 0.1
+B <- 1000
+
+reject <- function(N,alpha) {
+        s.ns <- sample(bwt.nonsmoke,N)
+        s.s <- sample(bwt.smoke,N)
+        t.result<-t.test(s.ns, s.s)
+        t.result$p.value < alpha
+}
+## alpha at 0.1
+rejections <- replicate(B, reject(N=N,alpha=alpha))
+power <- mean(rejections)
+power
+
+## alpha at 0.1,0.05 and 0.01
+alpha <- c(0.1,0.05,0.01)
+sapply(alpha,function(alpha){
+        rejections <- replicate(B,reject(N=N,alpha=alpha))
+        power <- mean(rejections)
+        return(power)
+})
+
+
+## Association test
+d = read.csv("assoctest.csv")
+table(d)
+dat <- table(d)
+row.names(dat) <- c("AA or Aa", "aa")
+colnames(dat) <- c("control","case")
+dat
+chires <- chisq.test(dat)
+chires
+fishres <- fisher.test(dat)
+fishres
+
+
+# Monte carlo process
+## read the data
+babies = read.table("babies.txt", header=TRUE)
+
+## The population of nonsmoker baby weights is:
+bwt.nonsmoke = babies$bwt[babies$smoke==0]
+
+## And the population variance is 302.7144:
+pop.var = var(bwt.nonsmoke)
+
+var.bab <- function(size){
+        baby <- sample(bwt.nonsmoke,size)
+        var(baby)
+}
+
+vars = replicate(1000, var.bab(10))
+
+hist(vars)
+abline(v=pop.var,col="red")
+
+comp <- vars > 1.5*pop.var
+mean(comp)
+
+vars <- replicate(1000, var.bab(50))
+comp <- vars > 1.5*pop.var
+mean(comp)
+
+
+sample.size = 2:400
+var.estimate = sapply(sample.size, function(n) var(sample(bwt.nonsmoke, n)))
+plot(sample.size, var.estimate)
+abline(h=pop.var, col="blue")
